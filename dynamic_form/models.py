@@ -21,7 +21,13 @@ class Field(TimeStampedModel):
     RADIO = 'RADIO'
     CHECKBOX = 'CHECKBOX'
     DROPDOWN = 'DROPDOWN'
+    MULTISELECT = 'MULTISELECT'
     FILEUPLOAD = 'FILEUPLOAD'
+    CURRENCY = 'CURRENCY'
+    PHONE = 'PHONE'
+    NAME = 'NAME'
+    EMAIL = 'EMAIL'
+    DATE = 'DATE'
 
     FIELD_TYPE = [
         (TEXT, 'Text'),
@@ -29,7 +35,13 @@ class Field(TimeStampedModel):
         (RADIO, 'Radio'),
         (CHECKBOX, 'Checkbox'),
         (DROPDOWN, 'Dropdown'),
-        (FILEUPLOAD, 'FielUpload'),
+        (MULTISELECT, 'MultiSelect'),
+        (FILEUPLOAD, 'FileUpload'),
+        (CURRENCY, 'Currency'),
+        (PHONE, 'Phone'),
+        (NAME, 'Name'),
+        (EMAIL, 'Email'),
+        (DATE, 'Date'),
     ]
     type = models.CharField(max_length=100, choices=FIELD_TYPE, default=TEXT, blank=True)
     label = models.CharField(max_length=5000, default='', blank=True)
