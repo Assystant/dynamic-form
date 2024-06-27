@@ -9,11 +9,12 @@ User = get_user_model()
 
 class Template(TimeStampedModel):
     label = models.CharField(max_length=5000, default='', blank=True)
-    
+    description = models.TextField(blank=True, default="")
+
     def __str__(self) -> str:
         return f"template_id : {self.id} --> {self.label}"
-    
-    
+
+
 class Field(TimeStampedModel):
     TEXT = 'TEXT'
     TEXTAREA = 'TEXTAREA'
@@ -21,7 +22,7 @@ class Field(TimeStampedModel):
     CHECKBOX = 'CHECKBOX'
     DROPDOWN = 'DROPDOWN'
     FILEUPLOAD = 'FILEUPLOAD'
-    
+
     FIELD_TYPE = [
         (TEXT, 'Text'),
         (TEXTAREA, 'Textarea'),
@@ -36,10 +37,10 @@ class Field(TimeStampedModel):
     required = models.BooleanField(default=True, blank=True)
     template = models.ForeignKey(Template, related_name="fields", blank=True, on_delete=models.CASCADE)
     sort_score = models.IntegerField(default=0, blank=True)
-    
+
     def __str__(self) -> str:
         return f"template_id : {self.template_id} --> field_id : {self.id} --> {self.type}"
-    
+
 
 class FieldValidation(TimeStampedModel):
     logic = models.TextField(max_length=5000, default='', blank=True)
