@@ -1,3 +1,5 @@
+import json
+
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -57,6 +59,19 @@ class Field(TimeStampedModel):
         blank=True,
         on_delete=models.CASCADE)
     sort_score = models.IntegerField(default=0, blank=True)
+    allow_specific_file_type = models.BooleanField(default=False, blank=True)
+    file_types = models.TextField(blank=True, default="[]")
+    maximum_files = models.PositiveIntegerField(default=1, blank=True)
+    maximum_size = models.PositiveIntegerField(
+        default=1, help_text="In MB", blank=True)
+
+    @property
+    def file_types_list(self):
+        return json.loads(self.file_types)
+
+    @file_types_list.setter
+    def file_types_list(self, value):
+        self.file_types = json.dumps(value)
 
     def __str__(self) -> str:
         return f"template_id : {self.template_id} --> field_id : {self.id} --> {self.type}"
