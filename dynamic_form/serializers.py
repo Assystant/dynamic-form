@@ -32,7 +32,8 @@ class FieldSerializer(ModelSerializer):
     options = FieldOptionSerializer(many=True, required=False)
     file_types = serializers.ListField(
         child=serializers.CharField(max_length=100),
-        allow_empty=True)
+        allow_empty=True,
+        required=False)
 
     class Meta:
         model = Field
@@ -40,9 +41,9 @@ class FieldSerializer(ModelSerializer):
 
     def create(self, validated_data):
         raw_options_data = validated_data.pop('options', [])
-        file_types_data = json.parse(validated_data.pop('file_types', ''))
+        file_types_data = json.dumps(validated_data.pop('file_types', ''))
         field = Field.objects.create(**validated_data)
-        field.file_types_list = file_types_data
+        field.file_types = file_types_data
         field.save()
         for raw_data in raw_options_data:
             field_serializer = FieldOptionSerializer(data=raw_data)
@@ -101,4 +102,18 @@ class TemplateSerializer(ModelSerializer):
         return template
 
     def update(self, instance, validated_data):
-        pass
+        fields_data = validated_data.pop('fields', [])
+        instance.label = validated_data.get('label', instance.label)
+        instance.description = validated_data.get('description', instance.description)
+        instance.save()
+        for field_data in fields_data:
+            print(field_data)
+            field_instance = None
+            try:
+                field_instance = instance.fields.get(pk=field_data.get('id', None))
+            except:
+                pass
+            serializer = FieldSerializer(field_instance, data=field_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(field=instance)
+        return instance
