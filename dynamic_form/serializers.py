@@ -48,11 +48,12 @@ class FieldSerializer(ModelSerializer):
         for raw_data in raw_options_data:
             field_serializer = FieldOptionSerializer(data=raw_data)
             field_serializer.is_valid(raise_exception=True)
-            field_serializer.save(field=field)
+            field_serializer.save()
         return field
 
     def update(self, instance, validated_data):
         # raw_options_data = self.data.get('options', [])
+        options_data = validated_data.pop('options', [])
         instance.label = validated_data.get('label', instance.label)
         instance.placeholder = validated_data.get(
             'placeholder', instance.placeholder)
@@ -65,6 +66,17 @@ class FieldSerializer(ModelSerializer):
         instance.file_types_list = validated_data.get(
             'file_types', instance.file_types_list)
         instance.save()
+        for option_data in options_data:
+            print(option_data)
+            option_instance = None
+            try:
+                option_instance = instance.options.get(pk=option_data.get('id', None))
+            except:
+                pass
+            serializer = FieldOptionSerializer(option_instance, data=option_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(field=instance)
+        return instance
 
 
 class InputTextSerializer(ModelSerializer):
@@ -115,5 +127,5 @@ class TemplateSerializer(ModelSerializer):
                 pass
             serializer = FieldSerializer(field_instance, data=field_data)
             serializer.is_valid(raise_exception=True)
-            serializer.save(field=instance)
+            serializer.save(template=instance)
         return instance
