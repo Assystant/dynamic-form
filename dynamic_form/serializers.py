@@ -24,12 +24,27 @@ class FieldOptionSerializer(ModelSerializer):
 
 
 class FieldSerializer(ModelSerializer):
-    validations = FieldValidationSerializer(many=True, required=False)
-    options = FieldOptionSerializer(many=True, required=False)
+    validations = FieldValidationSerializer(
+        many=True,
+        required=False,
+        read_only=True)
+    options = FieldOptionSerializer(many=True, required=False, read_only=True)
 
     class Meta:
         model = Field
         exclude = ['created', 'modified',]
+
+    def create(self, validated_data):
+        raw_options_data = self.data.get('options', [])
+        field = Field.objects.create(**validated_data)
+        for raw_data in raw_options_data:
+            field_serializer = FieldOptionSerializer(data=raw_data)
+            field_serializer.is_valid(True)
+            field_serializer.save(field=field)
+        return field
+
+    def update(self, instance, validated_data):
+        pass
 
 
 class InputTextSerializer(ModelSerializer):
@@ -51,8 +66,20 @@ class UserInputSerializer(ModelSerializer):
 
 
 class TemplateSerializer(ModelSerializer):
-    fields = FieldSerializer(many=True, required=False)
+    fields = FieldSerializer(many=True, read_only=True, required=False)
 
     class Meta:
         model = Template
         exclude = ['created', 'modified',]
+
+    def create(self, validated_data):
+        raw_fields_data = self.data.get('fields', [])
+        template = Template.objects.create(**validated_data)
+        for raw_data in raw_fields_data:
+            field_serializer = FieldSerializer(data=raw_data)
+            field_serializer.is_valid(True)
+            field_serializer.save(template=template)
+        return template
+
+    def update(self, instance, validated_data):
+        pass
