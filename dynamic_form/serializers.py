@@ -1,3 +1,4 @@
+import json
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from .models import (Field, FieldOption, FieldValidation, Template,
@@ -21,16 +22,16 @@ class FieldOptionSerializer(ModelSerializer):
                 f"Cannot attach options to {value.type} field."
             )
         return value
-    
+
 
 class FieldSerializer(ModelSerializer):
     validations = FieldValidationSerializer(
         many=True,
         required=False,
         read_only=True)
-    options = FieldOptionSerializer(many=True, required=False, read_only=True)
+    options = FieldOptionSerializer(many=True, required=False)
     file_types = serializers.ListField(
-        child=serializers.CharField(maxLength=100),
+        child=serializers.CharField(max_length=100),
         allow_empty=True)
 
     class Meta:
@@ -38,14 +39,14 @@ class FieldSerializer(ModelSerializer):
         exclude = ['created', 'modified',]
 
     def create(self, validated_data):
-        raw_options_data = self.data.get('options', [])
-        file_types_data = validated_data.pop('file_types', [])
+        raw_options_data = validated_data.pop('options', [])
+        file_types_data = json.parse(validated_data.pop('file_types', ''))
         field = Field.objects.create(**validated_data)
         field.file_types_list = file_types_data
         field.save()
         for raw_data in raw_options_data:
             field_serializer = FieldOptionSerializer(data=raw_data)
-            field_serializer.is_valid(True)
+            field_serializer.is_valid(raise_exception=True)
             field_serializer.save(field=field)
         return field
 
@@ -84,18 +85,18 @@ class UserInputSerializer(ModelSerializer):
 
 
 class TemplateSerializer(ModelSerializer):
-    fields = FieldSerializer(many=True, read_only=True, required=False)
+    fields = FieldSerializer(many=True, required=False)
 
     class Meta:
         model = Template
         exclude = ['created', 'modified',]
 
     def create(self, validated_data):
-        raw_fields_data = self.data.get('fields', [])
+        fields_data = validated_data.pop('fields', [])
         template = Template.objects.create(**validated_data)
-        for raw_data in raw_fields_data:
+        for raw_data in fields_data:
             field_serializer = FieldSerializer(data=raw_data)
-            field_serializer.is_valid(True)
+            field_serializer.is_valid(raise_exception=True)
             field_serializer.save(template=template)
         return template
 
