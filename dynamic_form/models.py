@@ -73,6 +73,7 @@ class FieldValidation(TimeStampedModel):
 
 class FieldOption(TimeStampedModel):
     label = models.CharField(max_length=5000, default='', blank=True)
+    sort_score = models.IntegerField(default=0, blank=True)
     field = models.ForeignKey(
         Field,
         related_name="options",
