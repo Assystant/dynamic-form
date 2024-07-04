@@ -17,6 +17,18 @@ class Template(TimeStampedModel):
         return f"template_id : {self.id} --> {self.label}"
 
 
+class Section(TimeStampedModel):
+    label = models.CharField(max_length=5000, default='', blank=True)
+    description = models.TextField(blank=True, default="")
+    template = models.ForeignKey(
+        Template,
+        related_name="sections",
+        blank=True,
+        on_delete=models.CASCADE)
+    sort_order = models.PositiveBigIntegerField(default=0, blank=True)
+    # fields = models.ManyToManyField(Field, blank=True)
+
+
 class Field(TimeStampedModel):
     TEXT = 'TEXT'
     TEXTAREA = 'TEXTAREA'
@@ -53,11 +65,19 @@ class Field(TimeStampedModel):
     label = models.CharField(max_length=5000, default='', blank=True)
     placeholder = models.CharField(max_length=5000, default='', blank=True)
     required = models.BooleanField(default=True, blank=True)
+    # uuid = models.UUIDField(unique=True)
     template = models.ForeignKey(
         Template,
         related_name="fields",
         blank=True,
         on_delete=models.CASCADE)
+    section = models.ForeignKey(
+        Section,
+        related_name='fields',
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL
+    )
     sort_score = models.IntegerField(default=0, blank=True)
     allow_specific_file_type = models.BooleanField(default=False, blank=True)
     file_types = models.TextField(blank=True, default="[]")

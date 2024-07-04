@@ -1,7 +1,7 @@
 import json
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
 from rest_framework import serializers
-from .models import (Field, FieldOption, FieldValidation, Template,
+from .models import (Field, FieldOption, FieldValidation, Section, Template,
                      UserInput, UserInputAttachment, UserInputTextValue)
 
 
@@ -29,6 +29,7 @@ class FieldSerializer(ModelSerializer):
         many=True,
         required=False,
         read_only=True)
+    template = PrimaryKeyRelatedField(read_only=True)
     options = FieldOptionSerializer(many=True, required=False)
     file_types = serializers.ListField(
         child=serializers.CharField(max_length=100),
@@ -39,6 +40,11 @@ class FieldSerializer(ModelSerializer):
         model = Field
         exclude = ['created', 'modified',]
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['file_types'] = instance.file_types_list
+        return representation
+
     def create(self, validated_data):
         raw_options_data = validated_data.pop('options', [])
         file_types_data = json.dumps(validated_data.pop('file_types', ''))
@@ -48,7 +54,7 @@ class FieldSerializer(ModelSerializer):
         for raw_data in raw_options_data:
             field_serializer = FieldOptionSerializer(data=raw_data)
             field_serializer.is_valid(raise_exception=True)
-            field_serializer.save()
+            field_serializer.save(field=field)
         return field
 
     def update(self, instance, validated_data):
@@ -79,6 +85,14 @@ class FieldSerializer(ModelSerializer):
         return instance
 
 
+class SectionSerializer(ModelSerializer):
+    fields = FieldSerializer(many=True, required=False)
+
+    class Meta:
+        model = Section
+        exclude = ['created', 'modified']
+
+
 class InputTextSerializer(ModelSerializer):
     class Meta:
         model = UserInputTextValue
@@ -99,6 +113,7 @@ class UserInputSerializer(ModelSerializer):
 
 class TemplateSerializer(ModelSerializer):
     fields = FieldSerializer(many=True, required=False)
+    sections = SectionSerializer(many=True, required=False)
 
     class Meta:
         model = Template
@@ -116,14 +131,17 @@ class TemplateSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         fields_data = validated_data.pop('fields', [])
         instance.label = validated_data.get('label', instance.label)
-        instance.description = validated_data.get('description', instance.description)
+        instance.description = validated_data.get(
+            'description',
+            instance.description)
         instance.save()
         for field_data in fields_data:
             print(field_data)
             field_instance = None
             try:
-                field_instance = instance.fields.get(pk=field_data.get('id', None))
-            except:
+                field_instance = instance.fields.get(
+                    pk=field_data.get('id', None))
+            except Template.DoesNotExist:
                 pass
             serializer = FieldSerializer(field_instance, data=field_data)
             serializer.is_valid(raise_exception=True)
