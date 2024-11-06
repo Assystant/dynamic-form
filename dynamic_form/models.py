@@ -19,7 +19,7 @@ class Template(TimeStampedModel):
     label = models.CharField(max_length=5000, default='', blank=True)
     description = models.TextField(blank=True, default="")
     unique_prefix = models.CharField(
-        max_length=50, default=generate_unique_prefix, unique=True)
+        max_length=50, default=generate_unique_prefix, blank=True, null=True)
 
     def __str__(self):
         return f"{self.id}-{self.name} ({self.unique_prefix})"
@@ -95,7 +95,7 @@ class Field(TimeStampedModel):
     maximum_size = models.PositiveIntegerField(
         default=1, help_text="In MB", blank=True)
     variable_name = models.CharField(
-        max_length=255, editable=False, unique=True)
+        max_length=255, editable=False, blank=True, null=True)
 
     @property
     def file_types_list(self):

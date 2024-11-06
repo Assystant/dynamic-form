@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="dynamic-form",
-    version="0.0.13",
+    version="0.0.14",
     author="Assystant",
     description="",
     install_requires=[
