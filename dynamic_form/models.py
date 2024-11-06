@@ -1,4 +1,6 @@
 import json
+import re
+import uuid
 
 from django.db import models
 from django.contrib.auth import get_user_model
@@ -9,12 +11,18 @@ from django_extensions.db.models import TimeStampedModel
 User = get_user_model()
 
 
+def generate_unique_prefix():
+    return f"form_{uuid.uuid4().hex[:8]}"
+
+
 class Template(TimeStampedModel):
     label = models.CharField(max_length=5000, default='', blank=True)
     description = models.TextField(blank=True, default="")
+    unique_prefix = models.CharField(
+        max_length=50, default=generate_unique_prefix, unique=True)
 
-    def __str__(self) -> str:
-        return f"template_id : {self.id} --> {self.label}"
+    def __str__(self):
+        return f"{self.id}-{self.name} ({self.unique_prefix})"
 
 
 class Section(TimeStampedModel):
@@ -86,6 +94,8 @@ class Field(TimeStampedModel):
     maximum_files = models.PositiveIntegerField(default=1, blank=True)
     maximum_size = models.PositiveIntegerField(
         default=1, help_text="In MB", blank=True)
+    variable_name = models.CharField(
+        max_length=255, editable=False, unique=True)
 
     @property
     def file_types_list(self):
@@ -95,11 +105,29 @@ class Field(TimeStampedModel):
     def file_types_list(self, value):
         self.file_types = json.dumps(value)
 
-    def __str__(self) -> str:
-        tid = self.template_id
-        id = self.id
-        ttype = self.type
-        return f"template_id: {tid} --> field_id: {id} --> {ttype}"
+    def generate_variable_name(self):
+        # Sanitize label and create variable name
+        base_name = re.sub(r'\W+', '_', self.label.strip().lower())
+        prefix = self.form.unique_prefix
+        field_type = self.field_type
+        variable_name = f"{prefix}_{base_name}_{field_type}"
+        count = 1
+        unique_name = variable_name
+
+        # Ensure uniqueness within the database
+        while Field.objects.filter(variable_name=unique_name).exists():
+            unique_name = f"{variable_name}_{count}"
+            count += 1
+
+        return unique_name
+
+    def save(self, *args, **kwargs):
+        if not self.variable_name:
+            self.variable_name = self.generate_variable_name()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.label} ({self.variable_name})"
 
 
 class FieldValidation(TimeStampedModel):
