@@ -19,10 +19,10 @@ class Template(TimeStampedModel):
     label = models.CharField(max_length=5000, default='', blank=True)
     description = models.TextField(blank=True, default="")
     unique_prefix = models.CharField(
-        max_length=50, default=generate_unique_prefix, blank=True, null=True)
+        max_length=50, default=generate_unique_prefix, unique=True)
 
     def __str__(self):
-        return f"{self.id}-{self.name} ({self.unique_prefix})"
+        return f"{self.id}-{self.label} ({self.unique_prefix})"
 
 
 class Section(TimeStampedModel):
@@ -95,7 +95,7 @@ class Field(TimeStampedModel):
     maximum_size = models.PositiveIntegerField(
         default=1, help_text="In MB", blank=True)
     variable_name = models.CharField(
-        max_length=255, editable=False, blank=True, null=True)
+        max_length=255, editable=False, unique=True)
 
     @property
     def file_types_list(self):
@@ -108,8 +108,8 @@ class Field(TimeStampedModel):
     def generate_variable_name(self):
         # Sanitize label and create variable name
         base_name = re.sub(r'\W+', '_', self.label.strip().lower())
-        prefix = self.form.unique_prefix
-        field_type = self.field_type
+        prefix = self.template.unique_prefix
+        field_type = self.type
         variable_name = f"{prefix}_{base_name}_{field_type}"
         count = 1
         unique_name = variable_name
