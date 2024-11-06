@@ -2,8 +2,8 @@ import setuptools
 
 setuptools.setup(
     name="dynamic-form",
-    version="0.0.11",
-    author="Assystant Technologies Pvt Ltd",
+    version="0.0.12",
+    author="Assystant",
     description="",
     install_requires=[
         "django",

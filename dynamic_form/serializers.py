@@ -76,10 +76,12 @@ class FieldSerializer(ModelSerializer):
             print(option_data)
             option_instance = None
             try:
-                option_instance = instance.options.get(pk=option_data.get('id', None))
-            except:
+                option_instance = instance.options.get(
+                    pk=option_data.get('id', None))
+            except Exception:
                 pass
-            serializer = FieldOptionSerializer(option_instance, data=option_data)
+            serializer = FieldOptionSerializer(
+                option_instance, data=option_data)
             serializer.is_valid(raise_exception=True)
             serializer.save(field=instance)
         return instance

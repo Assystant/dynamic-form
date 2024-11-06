@@ -1,4 +1,6 @@
-from .models import *
+from .models import (Field, FieldOption, FieldValidation,
+                     UserInput, UserInputAttachment,
+                     UserInputTextValue, Template)
 from django.contrib import admin
 
 # admin.site.register(Template)
@@ -14,22 +16,24 @@ class FieldInline(admin.TabularInline):
     model = Field
     extra = 1
 
+
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
     inlines = [FieldInline]
-    
-    
+
+
 class FieldOptionInline(admin.TabularInline):
     model = FieldOption
     extra = 1
 
+
 class FieldValidationInline(admin.TabularInline):
     model = FieldValidation
     extra = 1
+
 
 @admin.register(Field)
 class FieldAdmin(admin.ModelAdmin):
     inlines = [FieldOptionInline, FieldValidationInline]
     search_fields = ('template__id',)
     list_filter = ('type', 'required')
-

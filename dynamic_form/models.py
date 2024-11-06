@@ -42,6 +42,7 @@ class Field(TimeStampedModel):
     NAME = 'NAME'
     EMAIL = 'EMAIL'
     DATE = 'DATE'
+    SIGNATURE = 'SIGNATURE'
 
     FIELD_TYPE = [
         (TEXT, 'Text'),
@@ -56,6 +57,7 @@ class Field(TimeStampedModel):
         (NAME, 'Name'),
         (EMAIL, 'Email'),
         (DATE, 'Date'),
+        (SIGNATURE, 'Signature'),
     ]
     type = models.CharField(
         max_length=100,
@@ -94,7 +96,10 @@ class Field(TimeStampedModel):
         self.file_types = json.dumps(value)
 
     def __str__(self) -> str:
-        return f"template_id : {self.template_id} --> field_id : {self.id} --> {self.type}"
+        tid = self.template_id
+        id = self.id
+        ttype = self.type
+        return f"template_id: {tid} --> field_id: {id} --> {ttype}"
 
 
 class FieldValidation(TimeStampedModel):
