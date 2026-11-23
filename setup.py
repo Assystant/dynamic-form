@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="dynamic-form",
-    version="0.0.16",
+    version="0.0.17",
     author="Assystant",
     description="Custom form generation and submission management",
     install_requires=[
